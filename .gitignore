@@ -71,6 +71,9 @@ jspm_packages/
 # Deployment scripts (keep local only)
 deploy.sh
 
+# Data files (keep local only)
+cells.json
+
 # OS generated files
 .DS_Store
 .DS_Store?
