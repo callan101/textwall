@@ -6,9 +6,7 @@ A minimal realtime text wall: type anywhere with anyone.
 Features
 --------
 - **Realtime collaboration**: Multiple users can type simultaneously with instant sync
-- **Grid-based text placement**: Click anywhere to place text at precise grid positions
 - **Color customization**: Each user gets a unique color for their text and cursor
-- **Centered cursor**: Cursor starts in the middle of the viewport for better UX
 - **Pan and zoom**: Mouse wheel and drag to navigate the infinite text space
 - **Zoom support**: Ctrl/Cmd + wheel, touchpad pinch, mobile pinch gestures, and keyboard shortcuts
 - **Persistent storage**: Text is saved to `cells.json` and restored on server restart
@@ -20,7 +18,7 @@ Run
 npm run start
 ```
 
-Then open `http://localhost:3000` in multiple windows to see realtime sync.
+Then open `http://localhost:8101` in multiple windows to see realtime sync.
 
 Usage
 -----
