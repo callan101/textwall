@@ -68,6 +68,9 @@ jspm_packages/
 # DynamoDB Local files
 .dynamodb/
 
+# Deployment scripts (keep local only)
+deploy.sh
+
 # OS generated files
 .DS_Store
 .DS_Store?
