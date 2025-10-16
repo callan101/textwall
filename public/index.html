@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TextWall</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <canvas id="wall" width="0" height="0"></canvas>
+  <input type="text" id="mobile-input" style="position: fixed; top: -1000px; left: -1000px; opacity: 0; pointer-events: none;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <div id="color-picker-container">
+    <div id="color-preview" style="background-color: #ffffff;"></div>
+    <input type="text" id="color-picker" value="#ffffff" placeholder="#ffffff" title="Enter hex color code" maxlength="7">
+    <div id="color-sliders" style="display: none;">
+      <div class="slider-container">
+        <input type="range" id="hue-slider" min="0" max="360" value="0" class="slider">
+      </div>
+      <div class="slider-container">
+        <input type="range" id="brightness-slider" min="0" max="100" value="100" class="slider">
+      </div>
+    </div>
+    <button id="reset-zoom-btn" title="Reset zoom and center view">⌂</button>
+  </div>
+  <script src="/client.js"></script>
+</body>
+</html>
+
+
