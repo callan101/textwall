@@ -306,17 +306,15 @@
     // Reset zoom to 1.0
     zoom = 1.0;
     
-    // Center the view back to origin (0,0)
-    origin.col = 0;
-    origin.row = 0;
+    // Set cursor to origin (0,0)
+    cursor.col = 0;
+    cursor.row = 0;
     
-    // Center the cursor in the viewport
+    // Center the view on the cursor at (0,0) - same as initial page load
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
-    const centerCol = Math.floor(w / (CELL_W * zoom) / 2);
-    const centerRow = Math.floor(h / (CELL_H * zoom) / 2);
-    cursor.col = centerCol;
-    cursor.row = centerRow;
+    origin.col = -Math.floor(w / (CELL_W * zoom) / 2);
+    origin.row = -Math.floor(h / (CELL_H * zoom) / 2);
     
     sendCursor(cursor.row, cursor.col);
     draw();
