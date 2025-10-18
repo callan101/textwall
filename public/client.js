@@ -3,8 +3,6 @@
   const ctx = canvas.getContext('2d');
   let CELL_W = 32;
   let CELL_H = 32;
-  let COLS = 0;
-  let ROWS = 0;
   let cursor = { row: 0, col: 0 };
   let origin = { row: 0, col: 0 }; // top-left cell coordinate
   
@@ -127,15 +125,96 @@
   
   function updateHexFromSliders() {
     if (!hueSlider || !brightnessSlider || !colorPicker) return;
-    const hue = parseInt(hueSlider.value);
-    const brightness = parseInt(brightnessSlider.value);
+    const hue = parseFloat(hueSlider.value);
+    const brightness = parseFloat(brightnessSlider.value);
     const hex = hslToHex(hue, 100, brightness); // Full saturation for vibrant colors
     colorPicker.value = hex;
     updateColorPicker(hex);
   }
+  
+  function enterFineControlMode(slider, startY) {
+    fineControlMode.active = true;
+    fineControlMode.slider = slider;
+    fineControlMode.startY = startY;
+    fineControlMode.startValue = parseFloat(slider.value); // Use current slider value with fractional precision
+    fineControlMode.lastX = fineControlMode.startX; // Initialize lastX to current position
+  }
+  
+  function exitFineControlMode() {
+    fineControlMode.active = false;
+    fineControlMode.slider = null;
+    fineControlMode.startY = 0;
+    fineControlMode.startValue = 0;
+  }
+  
+  function handleFineControlMove(touch, slider) {
+    if (!fineControlMode.active || fineControlMode.slider !== slider) return;
+    
+    const rect = slider.getBoundingClientRect();
+    const sliderWidth = rect.width;
+    const sliderMin = parseInt(slider.min);
+    const sliderMax = parseInt(slider.max);
+    const sliderRange = sliderMax - sliderMin;
+    
+    // Update current Y position
+    fineControlMode.currentY = touch.clientY;
+    
+    // Calculate current distance from the slider (not from start position)
+    const sliderCenterY = rect.top + rect.height / 2;
+    const currentDistance = Math.abs(touch.clientY - sliderCenterY);
+    
+    // Calculate dynamic sensitivity based on distance from slider
+    let sensitivity = 1.0; // Normal sensitivity
+    if (currentDistance >= fineControlMode.minDistance) {
+      // Use a more gradual curve - square root for slower progression
+      const normalizedDistance = Math.min((currentDistance - fineControlMode.minDistance) / (fineControlMode.maxDistance - fineControlMode.minDistance), 1);
+      const gradualCurve = Math.sqrt(normalizedDistance); // Square root makes it more gradual
+      sensitivity = 1.0 - (gradualCurve * (1.0 - fineControlMode.maxSensitivity));
+    }
+    
+    // Only respond to horizontal movement - calculate delta from last X position
+    const deltaX = touch.clientX - fineControlMode.lastX;
+    
+    // Only update slider if there's actual horizontal movement
+    if (Math.abs(deltaX) > 0.5) { // Small threshold to avoid tiny movements
+      // Scale the movement by dynamic sensitivity
+      const scaledDelta = deltaX * sensitivity;
+      
+      // Convert to slider value
+      const valueChange = (scaledDelta / sliderWidth) * sliderRange;
+      const newValue = Math.max(sliderMin, Math.min(sliderMax, fineControlMode.startValue + valueChange));
+      
+      // Update slider value with fractional precision for smooth movement
+      slider.value = newValue;
+      
+      // Update the start value for next movement
+      fineControlMode.startValue = newValue;
+      
+      // Update color
+      updateHexFromSliders();
+      
+    }
+    
+    // Update last X position for next movement
+    fineControlMode.lastX = touch.clientX;
+  }
 
   // Track if user is actively using sliders
   let isUsingSliders = false;
+  
+  // Fine control mode for sliders
+  let fineControlMode = {
+    active: false,
+    slider: null,
+    startX: 0,
+    lastX: 0, // Track last X position to only respond to horizontal movement
+    startY: 0,
+    currentY: 0, // Track current Y position for dynamic distance calculation
+    startValue: 0,
+    minDistance: 20, // Minimum distance to start fine control
+    maxDistance: 200, // Distance for maximum fine control (increased for more gradual)
+    maxSensitivity: 0.2 // Maximum sensitivity (5x more precise, less extreme)
+  };
 
   // Ensure focus so typing works anywhere
   function focusWall() {
@@ -150,9 +229,56 @@
   window.addEventListener('keydown', focusWall);
   window.addEventListener('load', focusWall);
 
+  // Prevent page zooming while allowing canvas zoom
+  function preventPageZoom(e) {
+    // Allow canvas zoom gestures
+    if (e.target === canvas) {
+      return; // Let canvas handle its own zoom
+    }
+    
+    // Prevent zoom on other elements
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === '=' || e.key === '+' || e.key === '-' || e.key === '0') {
+        e.preventDefault();
+        return false;
+      }
+    }
+  }
+
+  // Prevent various zoom gestures
+  document.addEventListener('keydown', preventPageZoom, { passive: false });
+  document.addEventListener('wheel', (e) => {
+    // Only allow wheel zoom on canvas
+    if (e.target !== canvas) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // Prevent double-tap zoom
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+
+  // Prevent pinch zoom on non-canvas elements
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1 && e.target !== canvas) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1 && e.target !== canvas) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
   // Connection
   let socket;
-  let isApplyingRemote = false;
 
   function connect() {
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -353,61 +479,6 @@
     draw();
   }
 
-  function placeCursorAtPosition(row, col) {
-    // Convert row/col to offset in textContent
-    const lines = getLines();
-    row = clamp(row, 0, lines.length - 1);
-    col = clamp(col, 0, lines[row].length);
-    let offset = 0;
-    for (let i = 0; i < row; i++) offset += lines[i].length + 1; // +1 for \n
-    offset += col;
-
-    const range = document.createRange();
-    let node = wall.firstChild;
-    if (!node) {
-      wall.appendChild(document.createTextNode(''));
-      node = wall.firstChild;
-    }
-    range.setStart(node, clamp(offset, 0, (node.textContent || '').length));
-    range.collapse(true);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  function getCaretRowCol() {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return { row: 0, col: 0 };
-    const range = sel.getRangeAt(0);
-    const node = range.startContainer;
-    const offset = range.startOffset + (node === wall ? 0 : 0);
-    const text = wall.textContent || '';
-    const before = text.slice(0, offset);
-    const lines = before.split('\n');
-    const row = lines.length - 1;
-    const col = lines[lines.length - 1].length;
-    return { row, col };
-  }
-
-  function setCharAt(row, col, ch) {
-    const lines = getLines();
-    while (lines.length <= row) lines.push('');
-    const line = lines[row];
-    const pad = Math.max(0, col - line.length);
-    const padded = pad > 0 ? line + ' '.repeat(pad) : line;
-    const updated = padded.substring(0, col) + ch + padded.substring(col + 1);
-    lines[row] = updated;
-    setFromLines(lines);
-  }
-
-  function deleteCharAt(row, col) {
-    const lines = getLines();
-    if (row >= lines.length) return;
-    const line = lines[row];
-    if (col >= line.length) return;
-    lines[row] = line.substring(0, col) + ' ' + line.substring(col + 1);
-    setFromLines(lines);
-  }
 
   function getApproxCharWidth() {
     // Use a fixed cell width for consistency across devices
@@ -437,8 +508,6 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     CELL_W = Math.round(getApproxCharWidth());
     CELL_H = Math.round(getLineHeightPx());
-    COLS = Math.max(1, Math.floor(w / CELL_W));
-    ROWS = Math.max(1, Math.floor(h / CELL_H));
     
     // Start cursor at origin (0,0) for consistency across devices
     cursor.col = 0;
@@ -558,59 +627,6 @@
   window.addEventListener('resize', updateGridMetrics);
   updateGridMetrics();
 
-  function getText() {
-    // textContent preserves \n and \u00A0 reliably for our caret math
-    return wall.textContent || '';
-  }
-
-  let sendTimer = null;
-  function scheduleSend() {
-    if (sendTimer) return;
-    sendTimer = setTimeout(() => {
-      sendTimer = null;
-      sendUpdate();
-    }, 60); // tiny debounce
-  }
-
-  function sendUpdate() {
-    if (!socket || socket.readyState !== 1) return;
-    if (isApplyingRemote) return;
-    const text = getText();
-    if (text === lastSent) return;
-    lastSent = text;
-    socket.send(JSON.stringify({ type: 'update', text }));
-  }
-
-  wall.addEventListener('input', (e) => {
-    // Prevent adding lines that exceed viewport height
-    const rect = wall.getBoundingClientRect();
-    const maxRows = Math.max(1, Math.floor(rect.height / CELL_H));
-    let lines = getLines();
-    if (lines.length > maxRows) {
-      lines = lines.slice(0, maxRows);
-      setFromLines(lines);
-      placeCursorAtEnd(wall);
-    }
-    scheduleSend();
-  });
-  wall.addEventListener('paste', (e) => {
-    e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-    document.execCommand('insertText', false, text);
-  });
-
-  // Prevent Enter from creating lines past viewport
-  wall.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const rect = wall.getBoundingClientRect();
-      const maxRows = Math.max(1, Math.floor(rect.height / CELL_H));
-      const lines = getLines();
-      if (lines.length >= maxRows) {
-        e.preventDefault();
-      }
-    }
-  });
-
   function handleMouseDown(e) {
     if (e.button !== 0) return; // left click only
     
@@ -657,6 +673,13 @@
   }
 
   function handleTouchStart(e) {
+    // Don't handle touch events if they're on color picker elements
+    const colorPickerContainer = document.getElementById('color-picker-container');
+    if (colorPickerContainer && e.target && colorPickerContainer.contains(e.target)) {
+      e.preventDefault(); // Prevent page scrolling
+      return; // Let the color picker handle its own touch events
+    }
+    
     const touches = e.touches;
     if (!touches || touches.length === 0) return;
     
@@ -990,6 +1013,13 @@
   // Touch drag support for panning (handled in handleTouchStart above)
 
   window.addEventListener('touchmove', (e) => {
+    // Don't handle touch events if they're on color picker elements
+    const colorPickerContainer = document.getElementById('color-picker-container');
+    if (colorPickerContainer && e.target && colorPickerContainer.contains(e.target)) {
+      e.preventDefault(); // Prevent page scrolling
+      return; // Let the color picker handle its own touch events
+    }
+    
     const touches = e.touches;
     
     
@@ -1139,6 +1169,13 @@
   }, { passive: false });
 
   window.addEventListener('touchend', (e) => { 
+    // Don't handle touch events if they're on color picker elements
+    const colorPickerContainer = document.getElementById('color-picker-container');
+    if (colorPickerContainer && e.target && colorPickerContainer.contains(e.target)) {
+      e.preventDefault(); // Prevent page scrolling
+      return; // Let the color picker handle its own touch events
+    }
+    
     // Remove ended touches from active touches map
     if (e.changedTouches) {
       for (let i = 0; i < e.changedTouches.length; i++) {
@@ -1164,20 +1201,42 @@
 
   // Color picker event listeners
   if (colorPreview && colorPicker) {
-    // Click on preview to show input and sliders
+    // Click on preview to toggle input and sliders
     colorPreview.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent canvas from getting focus
       e.preventDefault(); // Prevent any default behavior
       
-      // Show the hex input and sliders
-      colorPicker.classList.add('show');
-      colorSliders.classList.add('show');
-      colorPicker.focus();
-      colorPicker.select();
+      // Check if color picker is already open
+      const isOpen = colorPicker.classList.contains('show');
       
-      // Update sliders to match current color
-      updateSlidersFromHex(myColor);
+      if (isOpen) {
+        // Close the color picker
+        colorPicker.classList.remove('show');
+        colorSliders.classList.remove('show');
+      } else {
+        // Show the hex input and sliders
+        colorPicker.classList.add('show');
+        colorSliders.classList.add('show');
+        colorPicker.focus();
+        colorPicker.select();
+        
+        // Update sliders to match current color
+        updateSlidersFromHex(myColor);
+      }
     });
+    
+    // Add touch event handling for mobile
+    colorPreview.addEventListener('touchstart', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      e.preventDefault(); // Prevent default touch behavior
+    }, { passive: false });
+    
+    colorPreview.addEventListener('touchend', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      e.preventDefault(); // Prevent default touch behavior
+      // Trigger the click behavior
+      colorPreview.click();
+    }, { passive: false });
     
     // Mouse down on input to focus it (before click)
     colorPicker.addEventListener('mousedown', (e) => {
@@ -1192,6 +1251,13 @@
       e.preventDefault(); // Prevent any default behavior
       colorPicker.focus();
     });
+    
+    // Add touch event handling for mobile
+    colorPicker.addEventListener('touchstart', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      e.preventDefault(); // Prevent default touch behavior
+      colorPicker.focus();
+    }, { passive: false });
     
     colorPicker.addEventListener('blur', () => {
       // Validate and complete the color when user finishes typing
@@ -1268,47 +1334,141 @@
   // Add slider event listeners
   if (hueSlider && brightnessSlider) {
     // Track when user starts using sliders
-    hueSlider.addEventListener('mousedown', () => {
+    hueSlider.addEventListener('mousedown', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the event
       isUsingSliders = true;
     });
-    brightnessSlider.addEventListener('mousedown', () => {
+    brightnessSlider.addEventListener('mousedown', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the event
       isUsingSliders = true;
     });
     
     // Track when user stops using sliders
-    hueSlider.addEventListener('mouseup', () => {
+    hueSlider.addEventListener('mouseup', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the event
       setTimeout(() => {
         isUsingSliders = false;
       }, 100);
     });
-    brightnessSlider.addEventListener('mouseup', () => {
+    brightnessSlider.addEventListener('mouseup', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the event
       setTimeout(() => {
         isUsingSliders = false;
       }, 100);
     });
     
-    // Also handle touch events for mobile
-    hueSlider.addEventListener('touchstart', () => {
-      isUsingSliders = true;
-    });
-    brightnessSlider.addEventListener('touchstart', () => {
-      isUsingSliders = true;
-    });
+    // Also handle touch events for mobile - CRITICAL for mobile slider functionality
+    hueSlider.addEventListener('touchstart', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      
+      const touch = e.touches[0];
+      fineControlMode.startX = touch.clientX;
+      fineControlMode.startY = touch.clientY;
+      // Don't set startValue here - it will be set when entering fine control mode
+      
+      // Don't prevent default - let the slider work normally
+    }, { passive: false });
     
-    hueSlider.addEventListener('touchend', () => {
-      setTimeout(() => {
-        isUsingSliders = false;
-      }, 100);
-    });
-    brightnessSlider.addEventListener('touchend', () => {
-      setTimeout(() => {
-        isUsingSliders = false;
-      }, 100);
-    });
+    brightnessSlider.addEventListener('touchstart', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      
+      const touch = e.touches[0];
+      fineControlMode.startX = touch.clientX;
+      fineControlMode.startY = touch.clientY;
+      // Don't set startValue here - it will be set when entering fine control mode
+      
+      // Don't prevent default - let the slider work normally
+    }, { passive: false });
+    
+    hueSlider.addEventListener('touchmove', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      
+      const touch = e.touches[0];
+      const rect = hueSlider.getBoundingClientRect();
+      const sliderCenterY = rect.top + rect.height / 2;
+      const currentDistance = Math.abs(touch.clientY - sliderCenterY);
+      
+      // Enter fine control mode if moved away from slider enough
+      if (currentDistance >= fineControlMode.minDistance && !fineControlMode.active) {
+        fineControlMode.startX = touch.clientX; // Update X reference to current position
+        enterFineControlMode(hueSlider, fineControlMode.startY);
+      }
+      
+      // If in fine control mode, handle the movement
+      if (fineControlMode.active && fineControlMode.slider === hueSlider) {
+        e.preventDefault(); // Prevent default slider behavior in fine control mode
+        handleFineControlMove(touch, hueSlider);
+      }
+      // Otherwise, let the slider work normally
+    }, { passive: false });
+    
+    brightnessSlider.addEventListener('touchmove', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      
+      const touch = e.touches[0];
+      const rect = brightnessSlider.getBoundingClientRect();
+      const sliderCenterY = rect.top + rect.height / 2;
+      const currentDistance = Math.abs(touch.clientY - sliderCenterY);
+      
+      // Enter fine control mode if moved away from slider enough
+      if (currentDistance >= fineControlMode.minDistance && !fineControlMode.active) {
+        fineControlMode.startX = touch.clientX; // Update X reference to current position
+        enterFineControlMode(brightnessSlider, fineControlMode.startY);
+      }
+      
+      // If in fine control mode, handle the movement
+      if (fineControlMode.active && fineControlMode.slider === brightnessSlider) {
+        e.preventDefault(); // Prevent default slider behavior in fine control mode
+        handleFineControlMove(touch, brightnessSlider);
+      }
+      // Otherwise, let the slider work normally
+    }, { passive: false });
+    
+    hueSlider.addEventListener('touchend', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      
+      // Exit fine control mode if it was active for this slider
+      if (fineControlMode.active && fineControlMode.slider === hueSlider) {
+        exitFineControlMode();
+      }
+      
+      // Don't prevent default - let the slider work normally
+    }, { passive: false });
+    
+    brightnessSlider.addEventListener('touchend', (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      
+      // Exit fine control mode if it was active for this slider
+      if (fineControlMode.active && fineControlMode.slider === brightnessSlider) {
+        exitFineControlMode();
+      }
+      
+      // Don't prevent default - let the slider work normally
+    }, { passive: false });
     
     // Update color while dragging
-    hueSlider.addEventListener('input', updateHexFromSliders);
-    brightnessSlider.addEventListener('input', updateHexFromSliders);
+    hueSlider.addEventListener('input', (e) => {
+      updateHexFromSliders();
+    });
+    brightnessSlider.addEventListener('input', (e) => {
+      updateHexFromSliders();
+    });
+  }
+
+  // Prevent touch events on color picker container from reaching canvas
+  const colorPickerContainer = document.getElementById('color-picker-container');
+  if (colorPickerContainer) {
+    const handleColorPickerTouch = (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      // Only prevent default for non-slider elements to avoid interfering with slider functionality
+      if (e.target !== hueSlider && e.target !== brightnessSlider) {
+        e.preventDefault(); // Prevent default touch behavior
+      }
+    };
+    
+    colorPickerContainer.addEventListener('touchstart', handleColorPickerTouch, { passive: false });
+    colorPickerContainer.addEventListener('touchmove', handleColorPickerTouch, { passive: false });
+    colorPickerContainer.addEventListener('touchend', handleColorPickerTouch, { passive: false });
   }
 
   // Hide color picker input and sliders when clicking elsewhere
@@ -1332,6 +1492,18 @@
       e.preventDefault();
       resetZoomAndCenter();
     });
+    
+    // Also handle touch events for mobile
+    const handleResetZoomTouch = (e) => {
+      e.stopPropagation(); // Prevent canvas from getting the touch event
+      e.preventDefault(); // Prevent default touch behavior
+    };
+    
+    resetZoomBtn.addEventListener('touchstart', handleResetZoomTouch, { passive: false });
+    resetZoomBtn.addEventListener('touchend', (e) => {
+      handleResetZoomTouch(e);
+      resetZoomAndCenter();
+    }, { passive: false });
   }
 
   connect();
