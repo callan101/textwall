@@ -9,19 +9,125 @@
 <body>
   <canvas id="wall" width="0" height="0"></canvas>
   <input type="text" id="mobile-input" style="position: fixed; top: -1000px; left: -1000px; opacity: 0; pointer-events: none;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  <div id="color-picker-container">
-    <div id="color-preview" style="background-color: #ffffff;"></div>
-    <input type="text" id="color-picker" value="#ffffff" placeholder="#ffffff" title="Enter hex color code" maxlength="7">
-    <div id="color-sliders" style="display: none;">
-      <div class="slider-container">
-        <input type="range" id="hue-slider" min="0" max="360" value="0" class="slider">
+  <div id="toolbar">
+    <div id="toolbar-items" class="toolbar-hidden">
+      <div id="zoom-control-wrapper">
+        <div id="zoom-control-box">
+          <div class="zoom-slider-container">
+            <input type="range" id="zoom-level-slider" min="0.1" max="10.0" step="0.01" value="5.05" class="zoom-slider">
+          </div>
+          <div class="zoom-slider-container">
+            <input type="range" id="zoom-speed-slider" min="0" max="1" step="0.001" value="0.5" class="zoom-slider">
+          </div>
+        </div>
       </div>
-      <div class="slider-container">
-        <input type="range" id="brightness-slider" min="0" max="100" value="100" class="slider">
+      <div id="color-picker-wrapper">
+        <div id="color-preview" style="background-color: #ffffff;"></div>
+      </div>
+      <button id="reset-zoom-btn" title="Reset zoom and center view">
+        <img id="reset-zoom-icon" src="/assets/home.png" alt="Reset zoom">
+      </button>
+    </div>
+    <button id="menu-toggle-btn" title="Toggle menu">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+    <div id="toolbar-items-right" class="toolbar-hidden">
+      <input type="text" id="cell-coords-input" value="0, 0" placeholder="col, row" autocomplete="off">
+      <button id="selection-mode-btn" title="Toggle selection mode">
+        <img id="selection-mode-icon" src="/assets/selection.png" alt="Selection mode">
+      </button>
+      <button id="paste-btn" title="Paste">
+        <img id="paste-icon" src="/assets/paste.png" alt="Paste">
+      </button>
+      <button id="undo-btn" title="Undo">
+        <img id="undo-icon" src="/assets/undo.png" alt="Undo">
+      </button>
+      <button id="info-btn" title="Info">i</button>
+    </div>
+  </div>
+  
+  <!-- Info Window -->
+  <div id="info-window" class="info-hidden">
+    <a href="https://callan101.com" target="_self" class="info-content">
+      <div class="info-body">
+        <p>Made by callan101</p>
+      </div>
+    </a>
+  </div>
+  
+  <!-- Color Picker Window -->
+  <div id="color-picker-window" class="color-picker-hidden">
+    <div class="color-picker-content">
+      <div class="color-picker-body">
+        <input type="text" id="color-picker" value="#ffffff" placeholder="#ffffff" title="Enter hex color code" maxlength="7">
+        <div id="color-sliders">
+          <div class="slider-container">
+            <input type="range" id="hue-slider" min="0" max="360" value="0" class="slider">
+          </div>
+          <div class="slider-container">
+            <input type="range" id="brightness-slider" min="0" max="100" value="100" class="slider">
+          </div>
+        </div>
       </div>
     </div>
-    <button id="reset-zoom-btn" title="Reset zoom and center view">⌂</button>
   </div>
+  
+  <!-- Debug Menu -->
+  <div id="debug-menu" style="display: none;">
+    <div class="debug-header">
+      <h3>Debug Info</h3>
+      <button id="debug-toggle" title="Toggle debug menu">×</button>
+    </div>
+    <div class="debug-content">
+      <div class="debug-item">
+        <label>Last Key:</label>
+        <span id="last-key">None</span>
+      </div>
+      <div class="debug-item">
+        <label>Key Code:</label>
+        <span id="key-code">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Cursor Position:</label>
+        <span id="cursor-pos">(0, 0)</span>
+      </div>
+      <div class="debug-item">
+        <label>Mobile Input Value:</label>
+        <span id="mobile-input-value">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Last Input Value:</label>
+        <span id="last-input-value">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Key Code:</label>
+        <span id="key-code-num">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Last Key Timestamp:</label>
+        <span id="key-timestamp">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Raw Key Code:</label>
+        <span id="raw-keycode">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Key Event Type:</label>
+        <span id="key-event-type">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Event Target:</label>
+        <span id="event-target">-</span>
+      </div>
+      <div class="debug-item">
+        <label>Composition:</label>
+        <span id="composition-state">-</span>
+      </div>
+    </div>
+  </div>
+  
   <script src="/client.js"></script>
 </body>
 </html>

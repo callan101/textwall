@@ -16,14 +16,173 @@ html, body {
 
 #wall { display: block; width: 100vw; height: 100vh; }
 
-#color-picker-container {
+#toolbar {
   position: fixed;
   top: 20px;
-  right: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+#menu-toggle-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  cursor: pointer;
+  outline: none;
+  display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.hamburger-line {
+  width: 20px;
+  height: 2px;
+  background-color: #e6e6e6;
+  border-radius: 1px;
+  display: block;
+}
+
+#menu-toggle-btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.7);
+}
+
+#menu-toggle-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+#toolbar-items {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#toolbar-items.toolbar-hidden {
+  display: none;
+}
+
+#toolbar-items-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#toolbar-items-right.toolbar-hidden {
+  display: none;
+}
+
+#info-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #ffffff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 18px;
+  font-weight: normal;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-style: italic;
+}
+
+#info-btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.7);
+}
+
+#info-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Info Window Styles */
+#info-window {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+#info-window.info-hidden {
+  display: none;
+}
+
+.info-content {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 0;
+  max-width: 200px;
+  width: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.2s ease;
+}
+
+.info-content:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.info-body {
+  padding: 20px;
+  color: #e6e6e6;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.info-body p {
+  margin: 0;
+}
+
+.info-body a {
+  color: #e6e6e6;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+  transition: text-decoration-color 0.2s ease;
+}
+
+.info-body a:hover {
+  text-decoration-color: rgba(255, 255, 255, 0.9);
+}
+
+#color-picker-wrapper {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
@@ -41,8 +200,51 @@ html, body {
   border-color: rgba(255,255,255,0.6);
 }
 
+/* Color Picker Window Styles */
+#color-picker-window {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+#color-picker-window.color-picker-hidden {
+  display: none;
+}
+
+.color-picker-content {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 0;
+  max-width: 300px;
+  width: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s ease;
+}
+
+.color-picker-content:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.color-picker-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
 #color-picker {
-  width: 80px;
+  width: 120px;
   height: 40px;
   border: 2px solid rgba(255,255,255,0.3);
   border-radius: 8px;
@@ -53,20 +255,93 @@ html, body {
   padding: 0 8px;
   text-align: center;
   outline: none;
-  display: none; /* Hidden by default */
 }
 
 #color-picker:hover, #color-picker:focus {
   border-color: rgba(255,255,255,0.6);
 }
 
-#color-picker.show {
-  display: block;
+#zoom-control-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#zoom-control-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  min-width: 180px;
+  height: 44px;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+}
+
+#zoom-control-box:hover {
+  border-color: rgba(255,255,255,0.6);
+}
+
+.zoom-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.zoom-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  min-width: 40px;
+  text-align: left;
+}
+
+.zoom-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.2);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #000000;
+  cursor: pointer;
+  border: 2px solid #e6e6e6;
+}
+
+.zoom-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #000000;
+  cursor: pointer;
+  border: 2px solid #e6e6e6;
+}
+
+.zoom-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 11px;
+  color: #e6e6e6;
+  min-width: 40px;
+  text-align: right;
 }
 
 #reset-zoom-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
   border: 2px solid rgba(255,255,255,0.3);
   border-radius: 8px;
   background: rgba(0,0,0,0.5);
@@ -79,6 +354,16 @@ html, body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+#reset-zoom-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 #reset-zoom-btn:hover {
@@ -90,19 +375,123 @@ html, body {
   background: rgba(255,255,255,0.1);
 }
 
-#color-sliders {
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  width: 200px;
-  background: rgba(0,0,0,0.3);
-  padding: 8px;
+#selection-mode-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255,255,255,0.3);
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.5);
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 18px;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-#color-sliders.show {
-  display: flex !important;
+#selection-mode-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+#selection-mode-btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.7);
+}
+
+#selection-mode-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+#undo-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 18px;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+#undo-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+#undo-btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.7);
+}
+
+#undo-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+#paste-btn {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 18px;
+  font-weight: normal;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+#paste-btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.7);
+}
+
+#paste-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+#paste-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+#color-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 220px;
 }
 
 .slider-container {
@@ -126,8 +515,8 @@ html, body {
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #e6e6e6;
   cursor: pointer;
@@ -135,8 +524,8 @@ html, body {
 }
 
 .slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #e6e6e6;
   cursor: pointer;
@@ -171,5 +560,431 @@ html, body {
 
 /* Subtle caret visibility across themes */
 ::selection { background: rgba(255,255,255,0.15); }
+
+/* Debug Menu Styles */
+#debug-toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #e6e6e6;
+  font-size: 18px;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  transition: all 0.2s ease;
+}
+
+#debug-toggle-btn:hover {
+  border-color: rgba(255,255,255,0.6);
+  background: rgba(0,0,0,0.7);
+}
+
+#debug-toggle-btn:active {
+  background: rgba(255,255,255,0.1);
+}
+
+#debug-menu {
+  position: fixed;
+  top: 20px;
+  left: 80px;
+  width: 280px;
+  background: rgba(0,0,0,0.8);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.05);
+}
+
+.debug-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+#debug-toggle {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: #e6e6e6;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+#debug-toggle:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.debug-content {
+  padding: 8px 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.debug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.debug-item:last-child {
+  border-bottom: none;
+}
+
+.debug-item label {
+  font-weight: normal;
+  color: rgba(255,255,255,0.7);
+  min-width: 100px;
+}
+
+.debug-item span {
+  color: #e6e6e6;
+  font-weight: normal;
+  text-align: right;
+  min-width: 80px;
+}
+
+#cell-coords-input {
+  width: 110px;
+  height: 40px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #e6e6e6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 14px;
+  padding: 0 8px;
+  text-align: center;
+  outline: none;
+}
+
+#cell-coords-input:hover, #cell-coords-input:focus {
+  border-color: rgba(255,255,255,0.6);
+}
+
+#cell-coords-input.invalid {
+  border-color: rgba(255,107,107,0.7);
+  box-shadow: 0 0 6px rgba(255,107,107,0.7);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  #debug-menu {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: calc(100vw - 20px);
+  }
+  
+  #toolbar {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  /* Force row 1 items to stay together and take up enough space */
+  #color-picker-wrapper,
+  #reset-zoom-btn,
+  #menu-toggle-btn,
+  #info-btn,
+  #cell-coords-input {
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+  
+  /* Row 2 items - zoom, selection, paste, undo - should wrap together */
+  #zoom-control-wrapper {
+    order: 6 !important;
+    flex-shrink: 0;
+  }
+  
+  #selection-mode-btn {
+    order: 7 !important;
+    flex-shrink: 0;
+  }
+  
+  #paste-btn {
+    order: 8 !important;
+    flex-shrink: 0;
+  }
+  
+  #undo-btn {
+    order: 9 !important;
+    flex-shrink: 0;
+  }
+  
+  /* Direct high-specificity targeting - apply universally in mobile */
+  /* Use fixed sizes for consistency across all browsers */
+  #toolbar #reset-zoom-btn,
+  #toolbar #menu-toggle-btn,
+  #toolbar #info-btn,
+  #toolbar #selection-mode-btn,
+  #toolbar #paste-btn,
+  #toolbar #undo-btn {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 44px !important;
+  }
+  
+  /* Firefox-specific fix: increase button sizes and fix layout */
+  /* Must come AFTER universal styles to override them */
+  @supports (-moz-appearance: none) {
+    /* Make ALL buttons 52px in Firefox (they're smaller by default) */
+    #toolbar #reset-zoom-btn,
+    #toolbar #menu-toggle-btn,
+    #toolbar #info-btn,
+    #toolbar #selection-mode-btn,
+    #toolbar #paste-btn,
+    #toolbar #undo-btn {
+      width: 52px !important;
+      min-width: 52px !important;
+      max-width: 52px !important;
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+      line-height: 52px !important;
+      box-sizing: border-box !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    
+    /* Make color preview match button size exactly (52x52 square) */
+    #toolbar #color-picker-wrapper #color-preview {
+      width: 52px !important;
+      min-width: 52px !important;
+      max-width: 52px !important;
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+      box-sizing: border-box !important;
+    }
+    
+    
+    /* Make coords input match button height */
+    #toolbar #cell-coords-input {
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Make zoom control box match button height and center sliders */
+    #toolbar #zoom-control-box {
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+      box-sizing: border-box !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Force zoom to row 2 by making coords input wider to take up space */
+    /* Don't constrain color picker - let it be natural size */
+    #cell-coords-input {
+      min-width: 120px !important;
+      width: 120px !important;
+    }
+    
+    /* Zoom wrapper - let it wrap naturally but stay compact */
+    #zoom-control-wrapper {
+      order: 6 !important;
+      flex-basis: auto !important;
+      width: auto !important;
+      min-width: 140px !important;
+      max-width: 180px !important;
+      flex-shrink: 0 !important;
+      flex-grow: 0 !important;
+    }
+    
+    /* Keep zoom box compact */
+    #zoom-control-wrapper #zoom-control-box {
+      width: auto !important;
+      max-width: 180px !important;
+    }
+    
+    /* Ensure rows are same width by making toolbar items align properly */
+    #toolbar {
+      align-items: flex-start !important;
+      justify-content: center !important;
+    }
+    
+    /* Make sure row 1 and row 2 items align to same width */
+    /* Force all items to align to the same baseline */
+    #color-picker-wrapper,
+    #reset-zoom-btn,
+    #menu-toggle-btn,
+    #info-btn,
+    #cell-coords-input,
+    #zoom-control-wrapper,
+    #selection-mode-btn,
+    #paste-btn,
+    #undo-btn {
+      align-self: flex-start !important;
+    }
+    
+    /* Center zoom sliders within the zoom box */
+    .zoom-slider-container {
+      width: 100% !important;
+      display: flex !important;
+      justify-content: center !important;
+    }
+    
+    /* Make both rows the same width by adding margin to row 1 to match row 2 */
+    /* Row 1: color (52px) + gap (8px) + home (52px) + gap (8px) + hamburger (52px) + gap (8px) + info (52px) + gap (8px) + cords (100px) = 340px */
+    /* Row 2: zoom (180px) + gap (8px) + selection (52px) + gap (8px) + paste (52px) + gap (8px) + undo (52px) = 360px */
+    /* Difference = 20px, so add 10px margin to each side of row 1 */
+    #color-picker-wrapper {
+      margin-left: 10px !important;
+    }
+    
+    #cell-coords-input {
+      margin-right: 10px !important;
+    }
+  }
+  
+  /* Additional Firefox targeting using -moz prefix - must also come after universal styles */
+  /* This ensures all buttons get the same size */
+  #toolbar #reset-zoom-btn:-moz-any-link,
+  #toolbar #menu-toggle-btn:-moz-any-link,
+  #toolbar #info-btn:-moz-any-link,
+  #toolbar #selection-mode-btn:-moz-any-link,
+  #toolbar #paste-btn:-moz-any-link,
+  #toolbar #undo-btn:-moz-any-link {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    box-sizing: border-box !important;
+    line-height: 52px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Ensure icons are consistent */
+  #toolbar #reset-zoom-icon,
+  #toolbar #undo-icon,
+  #toolbar #paste-icon,
+  #toolbar #selection-mode-icon {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  /* Make toolbar items direct children for ordering */
+  #toolbar-items {
+    max-width: 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+    display: contents;
+  }
+  
+  #toolbar-items-right {
+    max-width: 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+    display: contents;
+  }
+  
+  /* Hide children when parent is hidden */
+  #toolbar-items.toolbar-hidden > * {
+    display: none;
+  }
+  
+  #toolbar-items-right.toolbar-hidden > * {
+    display: none;
+  }
+  
+  /* Reorder items for mobile layout */
+  /* Row 1: color picker, home, hamburger, info, coords */
+  #color-picker-wrapper {
+    order: 1 !important;
+  }
+  
+  #reset-zoom-btn {
+    order: 2 !important;
+  }
+  
+  #menu-toggle-btn {
+    order: 3 !important;
+  }
+  
+  #info-btn {
+    order: 4 !important;
+  }
+  
+  #cell-coords-input {
+    order: 5 !important;
+  }
+  
+  /* Ensure zoom is definitely on row 2 for Firefox */
+  #zoom-control-wrapper {
+    order: 6 !important;
+  }
+  
+  #zoom-control-box {
+    min-width: 140px;
+  }
+  
+  #cell-coords-input {
+    width: 90px;
+    font-size: 12px;
+  }
+  
+  .zoom-slider {
+    height: 8px;
+  }
+  
+  .zoom-slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .zoom-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+}
 
 
